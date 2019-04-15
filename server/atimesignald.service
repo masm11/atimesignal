@@ -1,0 +1,13 @@
+[Unit]
+Description=ATimeSignal daemon
+After=network.target
+
+[Service]
+Type=forking
+WorkingDirectory=/home/masm
+ExecStart=/home/masm/atimesignal/atimesignald.rb
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
