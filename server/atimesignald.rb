@@ -25,12 +25,8 @@ require 'rb-inotify'
 
 require_relative './conf'
 
-if TOKEN_LIST_FILE.nil?
-  raise 'TOKEN_LIST_FILE not set.'
-end
-if SERVER_KEY.nil?
-  raise 'SERVER_KEY not set.'
-end
+raise 'TOKEN_LIST_FILE not set.' if TOKEN_LIST_FILE.nil?
+raise 'SERVER_KEY not set.' if SERVER_KEY.nil?
 
 class Notifier
   
