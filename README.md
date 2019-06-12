@@ -9,6 +9,10 @@
 
 ### サーバ側
 
+サーバは私が持っていますので、そのまま使えるはずです。
+
+別途用意する場合は、以下の作業でいけると思います。
+
 どんな gem が必要か覚えてませんが、
 atimesignald.rb の先頭付近を見て、適当に `gem install` してください。
 
@@ -33,8 +37,7 @@ nginx 等からリクエストを転送するように設定してください�
 
 ### アプリ側
 
-`android/app/src/main/java/me/masm11/atimesignal/TokenSenderService.kt` にある
-`URL_TO_REGISTER` を変更してください。
+サーバを別途用意した場合は、`android/app/src/main/java/me/masm11/atimesignal/TokenSenderService.kt` にある `URL_TO_REGISTER` を変更してください。
 
 あとは、
 
