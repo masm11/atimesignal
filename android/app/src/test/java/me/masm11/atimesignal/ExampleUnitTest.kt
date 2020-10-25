@@ -1,4 +1,4 @@
-package masm11.me.atimesignal
+package me.masm11.atimesignal
 
 import org.junit.Test
 

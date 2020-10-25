@@ -1,7 +1,7 @@
-package masm11.me.atimesignal
+package me.masm11.atimesignal
 
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,7 +18,7 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         // Context of the app under test.
-        val appContext = InstrumentationRegistry.getTargetContext()
-        assertEquals("masm11.me.atimesignal", appContext.packageName)
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("me.masm11.atimesignal", appContext.packageName)
     }
 }

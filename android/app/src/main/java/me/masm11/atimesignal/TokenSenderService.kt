@@ -23,7 +23,12 @@ class TokenSenderService : IntentService("TokenSenderService") {
 	})
     }
 
-    override fun onHandleIntent(intent: Intent) {
+    override fun onHandleIntent(intent: Intent?) {
+
+	if (intent == null) {
+	    android.util.Log.d("TokenSenderService", "intent is null")
+	    return
+	}
 
 	val token = intent.getStringExtra(TOKEN)
 	android.util.Log.d("TokenSenderService", "token: ${token}")
