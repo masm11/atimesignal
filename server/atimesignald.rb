@@ -22,26 +22,37 @@ require 'uri'
 require 'json'
 require 'webrick'
 require 'rb-inotify'
+require 'slack/incoming/webhooks'
+require 'google/apis/fcm_v1'
 
 require_relative './conf'
 
-raise 'TOKEN_LIST_FILE not set.' if TOKEN_LIST_FILE.nil?
-raise 'SERVER_KEY not set.' if SERVER_KEY.nil?
+if TOKEN_LIST_FILE.nil?
+  raise 'TOKEN_LIST_FILE not set.'
+end
+
+if FCM_SDK_JSON.nil?
+  raise 'FCM_SDK_JSON not set.'
+end
+
+if FCM_PROJECT.nil?
+  raise 'FCM_PROJECT not set'
+end
+
+FCM_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging'
 
 class Notifier
-  
-  END_POINT = 'https://fcm.googleapis.com/fcm/send'
+  def initialize
+    @fcm = Google::Apis::FcmV1::FirebaseCloudMessagingService.new
+    @fcm.authorization = Google::Auth::ServiceAccountCredentials.make_creds(
+      json_key_io: File.open(FCM_SDK_JSON),
+      scope: FCM_SCOPE,
+    )
+  end
   
   def notify()
     hhmm = Time.now.localtime.strftime('%H:%M')
 
-    uri = URI.parse(END_POINT)
-    
-    header = {
-      'Content-Type' => 'application/json',
-      'Authorization' => 'key=' + SERVER_KEY,
-    }
-    
     retry_ctr = 0
     begin
       tokens = File.read(TOKEN_LIST_FILE).split(/\r?\n/).map{|s| s.split[0]}
@@ -52,30 +63,35 @@ class Notifier
       retry
     end
     
-    https = Net::HTTP.new(uri.host, uri.port)
-    https.use_ssl = true
-    https.ca_path = '/etc/ca-certificates/extracted/cadir'
-    https.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    https.start {
+    begin
+      @fcm.authorization.fetch_access_token!
+
       tokens.each do |token|
-        h = {
-          to: token,
-          priority: 'high',
-          time_to_live: 300,
-          notification: {
-            title: '時報',
-            body: hhmm,
-            tag: 'timesignal',
-          },
-        }
-        
-        json = JSON.dump(h)
-        
-        res = https.post(uri.path, json, header)
-        $stderr.puts res.class
-        $stderr.puts res.body
+        msg = ::Google::Apis::FcmV1::SendMessageRequest.new(
+          message: {
+            android: {
+              notification: {
+                title: '時報',
+                body: hhmm,
+                tag: 'timesignal',
+                visibility: 'public',    # 意味なさげ?
+              },
+              priority: 'high',
+              ttl: '300s',
+            },
+            token: token,
+          }
+        )
+        r = @fcm.send_message("projects/#{FCM_PROJECT}", msg)
       end
-    }
+    rescue => e
+      $stderr.puts e.to_s
+      $stderr.puts e.backtrace
+      slack = Slack::Incoming::Webhooks.new(SLACK_WEBHOOK_URL,
+					    channel: '#conoha',
+					    username: 'ATimeSignal')
+      slack.post "#{e.to_s}\n```#{e.backtrace.join("\n")}```"
+    end
   end
   
 end
